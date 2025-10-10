@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #9ca3af; /* gray-400 */
+        }
+        .todo-item {
+            transition: background-color 0.2s ease-in-out;
+        }
+        .todo-item:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div class="container mx-auto max-w-lg mt-10 md:mt-20 px-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6">
+            <div class="flex items-center mb-6">
+                <svg class="w-8 h-8 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">My Tasks</h1>
+            </div>
+
+            <!-- Form to add new todos -->
+            <form id="todo-form" class="flex gap-3 mb-6">
+                <input type="text" id="todo-input" class="flex-grow p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Add a new task..." autocomplete="off">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-5 rounded-lg transition-colors">
+                    Add
+                </button>
+            </form>
+
+            <!-- List of todos -->
+            <ul id="todo-list" class="space-y-3">
+                <!-- Todo items will be injected here by JavaScript -->
+            </ul>
+        </div>
+        <p class="text-center text-gray-500 text-sm mt-6">Created with ❤️ using Tailwind CSS</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const todoForm = document.getElementById('todo-form');
+            const todoInput = document.getElementById('todo-input');
+            const todoList = document.getElementById('todo-list');
+
+            // --- FUNCTIONS ---
+
+            // Function to create a new todo list item
+            const createTodoItem = (taskText) => {
+                const li = document.createElement('li');
+                li.className = 'todo-item flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm';
+
+                // Span for the task text
+                const taskSpan = document.createElement('span');
+                taskSpan.textContent = taskText;
+                taskSpan.className = 'flex-grow cursor-pointer';
+
+                // Container for buttons
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'flex items-center gap-2';
+                
+                // Complete Button
+                const completeButton = document.createElement('button');
+                completeButton.innerHTML = `<svg class="w-6 h-6 text-green-500 hover:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                completeButton.classList.add('complete-btn');
+
+                // Delete Button
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = `<svg class="w-6 h-6 text-red-500 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                deleteButton.classList.add('delete-btn');
+
+                buttonsDiv.appendChild(completeButton);
+                buttonsDiv.appendChild(deleteButton);
+                
+                li.appendChild(taskSpan);
+                li.appendChild(buttonsDiv);
+                
+                todoList.appendChild(li);
+            };
+
+            // --- EVENT LISTENERS ---
+
+            // Add a new todo
+            todoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const taskText = todoInput.value.trim();
+
+                if (taskText) {
+                    createTodoItem(taskText);
+                    todoInput.value = '';
+                    todoInput.focus();
+                }
+            });
+
+            // Mark as complete or delete a todo
+            todoList.addEventListener('click', (e) => {
+                const target = e.target.closest('button, span');
+
+                if (!target) return;
+
+                const li = target.closest('li');
+                if (!li) return;
+
+                if (target.matches('.delete-btn, .delete-btn *')) {
+                    li.classList.add('animate-pulse');
+                    setTimeout(() => li.remove(), 300);
+                } else if (target.matches('.complete-btn, .complete-btn *') || target.tagName === 'SPAN') {
+                    const taskSpan = li.querySelector('span');
+                    taskSpan.classList.toggle('completed');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
