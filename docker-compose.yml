@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    build: .
+    image: "adityadevsecops/my-app"
     container_name: nginx_web
     ports:
       - "8080:80"   # maps host port 8080 -> container port 80
