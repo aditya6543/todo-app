@@ -1,41 +1,82 @@
-@Library("Shared") _
 pipeline {
-    agent { label "vinod" }
+    agent any
+
+    environment {
+        IMAGE_NAME = "adityadevsecops/my-app"
+        TAG = "latest"
+        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+    }
 
     stages {
-        stage("Hello") {
+
+        stage('Clone Repository') {
             steps {
-                script {
-                    hello()
-                }
+                git branch: 'main',
+                url: 'https://github.com/aditya6543/todo-app.git'
             }
         }
-        stage("code") {
+
+        stage('Secret Scan - Gitleaks') {
             steps {
-                script {
-                    clone("https://github.com/aditya6543/todo-app.git", "main")
-                }
+                sh '''
+                echo "Running Gitleaks Scan..."
+                gitleaks detect --source .
+                '''
             }
         }
-        stage("build") {
+
+        stage('Build Docker Image') {
             steps {
-                script {
-                    docker_build("my-app", "latest", "adityadevsecops")
-                }
+                sh '''
+                echo "Building Docker Image"
+                docker build -t $IMAGE_NAME:$TAG .
+                '''
             }
         }
-        stage("Push to Docker-hub") {
+
+        stage('Trivy Security Scan') {
             steps {
-                script {
-                    docker_push("my-app", "latest", "adityadevsecops")
-                }
+                sh '''
+                echo "Scanning Image with Trivy"
+                trivy image $IMAGE_NAME:$TAG
+                '''
             }
         }
-        stage("deploy") {
+
+        stage('Push Image to DockerHub') {
             steps {
-                echo "this is deploying the code"
-                sh "docker compose up -d --build"
+                sh '''
+                echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
+                docker push $IMAGE_NAME:$TAG
+                '''
             }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                sh '''
+                echo "Deploying Application"
+                docker compose down
+                docker compose up -d --build
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                docker ps
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment Successful"
+        }
+        failure {
+            echo "Pipeline Failed"
         }
     }
 }
