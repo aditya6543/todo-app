@@ -56,6 +56,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Deploying Application"
+                docker rm -f nginx_web || true
                 docker-compose down
                 docker-compose up -d --build
                 '''
